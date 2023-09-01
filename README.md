@@ -2,6 +2,6 @@
 
 JP Rodriguez,
 Armon David,
-Bryan Suh,
+\n Bryan Suh,
 Khalil  Jones,
 
