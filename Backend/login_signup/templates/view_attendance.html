@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+
+{% block title %}View Attendance{% endblock %}
+
+{% block content %}
+<h2>Attendance Records</h2>
+<table>
+    <tr>
+        <th>Date</th>
+        <th>Status</th>
+    </tr>
+    {% for record in records %}
+    <tr>
+        <td>{{ record[1] }}</td>
+        <td>{% if record[2] %}Present{% else %}Absent{% endif %}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}
