@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+
+{% block title %}Mark Attendance{% endblock %}
+
+{% block content %}
+<h2>Mark Attendance</h2>
+<form method="POST" action="/mark-attendance">
+    <label for="status">Status:</label>
+    <input type="radio" name="status" value="true" required> Present
+    <input type="radio" name="status" value="false"> Absent<br><br>
+    <input type="submit" value="Submit">
+</form>
+{% endblock %}
