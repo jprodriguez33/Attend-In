@@ -1,6 +1,12 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 import psycopg2
 from datetime import date
+import qrcode
+from PIL import Image
+import cv2
+import geocoder
+from geopy.distance import geodesic
+
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
@@ -62,13 +68,24 @@ def mark_attendance():
             date_today = date.today()
             status = request.form.get('status', False)
 
+            student_ip = request.remote_addr  # This will get the student's IP address
+
+            student_location = geocoder.ip(student_ip)
+            student_latitude, student_longitude = student_location.latlng
+
+            school_location = (school_latitude, school_longitude)  # School's location
+            distance = geodesic(school_location, (student_latitude, student_longitude)).kilometers
+            # Define a threshold distance within which the student is considered near the school
+            threshold_distance = 10.0  # Adjust this value as needed
+
             try:
                 cursor.execute("INSERT INTO attendance (attendance_name, date, status) VALUES (%s, %s, %s)", (username, date_today, status))
                 conn.commit()
             except Exception as e:
                 conn.rollback()  # Roll back the transaction on error
                 print(f"Error: {e}")
-
+                #added qr code functionality
+            qr_code_link = url_for('qr_code', username=username)
         return render_template('mark_attendance.html')
     return redirect(url_for('login'))
 
@@ -84,3 +101,18 @@ def view_attendance():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+@app.route('/generate-qr-code/<username>')
+def generate_qr_code(username):
+    qr = qrcode.QRcode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=10, border=4)
+    qr.add_data(username)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black",back_color="white")
+
+    img.save('static/qr_codes/{}.png'.format(username))
+
+    return 'QR code generated: /static/qr_codes/{}.png'.format(username)
+@app.route('/qr-code/<username>')
+def qr_code(username):
+    qr_code_path = '/static/qr_codes/{}.png'.format(username)
+    return render_template('qr_code.html', qr_code_path=qr_code_path)
